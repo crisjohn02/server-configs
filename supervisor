@@ -1,0 +1,51 @@
+[group:fluent-widget]
+programs=fluent-widget1,fluent-widget2,fluent-widget3
+
+[program:fluent-widget1]
+process_name=%(program_name)s_%(process_num)02d
+command=/bin/bash -c "source /root/.bashrc && node /var/www/fluent.backend/widget.js --port=8001"
+autostart=true
+autorestart=true
+stopasgroup=true
+killasgroup=true
+user=root
+numprocs=1
+redirect_stderr=true
+stdout_logfile=/var/log/fluent-widget1.log
+stopwaitsecs=60
+stopsignal=sigint
+minfds=10240
+
+[program:fluent-widget2]
+process_name=%(program_name)s_%(process_num)02d
+command=/bin/bash -c "source /root/.bashrc && node /var/www/fluent.backend/widget.js --port=8002"
+autostart=true
+autorestart=true
+stopasgroup=true
+killasgroup=true
+user=root
+numprocs=1
+redirect_stderr=true
+stdout_logfile=/var/log/fluent-widget2.log
+stopwaitsecs=60
+stopsignal=sigint
+minfds=10240
+
+[program:fluent-widget3]
+process_name=%(program_name)s_%(process_num)02d
+command=/bin/bash -c "source /root/.bashrc && node /var/www/fluent.backend/widget.js --port=8003"
+autostart=true
+autorestart=true
+stopasgroup=true
+killasgroup=true
+user=root
+numprocs=1
+redirect_stderr=true
+stdout_logfile=/var/log/fluent-widget3.log
+stopwaitsecs=60
+stopsignal=sigint
+minfds=10240
+
+
+to restart the group
+sudo supervisorctl restart fluent-widget:\*
