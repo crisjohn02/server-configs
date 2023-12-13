@@ -1,0 +1,15 @@
+# stop all docker container
+docker stop $(docker ps -a -q)
+
+# remove all docker container
+docker remove $(docker ps -a -q)
+
+# to know the IP address of the container
+docker inspect \
+  -f '{{range.NetworkSettings.Networks}}{{.IPAddress}}{{end}}' container_name
+  
+# access the container's shell
+docker exec -it container_name bash
+
+# build and run docker in detached mode
+docker compose up -d
