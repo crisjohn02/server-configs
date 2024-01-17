@@ -13,3 +13,7 @@ docker exec -it container_name bash
 
 # build and run docker in detached mode
 docker compose up -d
+
+# delete all images
+docker rmi -f $(docker images -a -q)
+
