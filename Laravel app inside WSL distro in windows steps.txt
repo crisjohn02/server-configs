@@ -1,0 +1,74 @@
+Running Laravel apps inside WSL with database from windows host
+
+Step 1: Install WSL2 for windows and install Ubuntu 22 distro
+Step 2: Install nginx, php-fpm and open-ssh
+	Installing nginx, php and open-ssh:
+
+	apt update
+	apt install nginx
+	apt install openssh-server
+	ufw status
+	ufw enable
+	ufw allow ssh
+
+	Installing PHP8.2
+	
+	apt update
+	add-apt-repository ppa:ondrej/php
+	apt install php8.2 -y
+	apt-get install -y php8.2-cli php8.2-common php8.2-fpm php8.2-mysql php8.2-zip php8.2-gd php8.2-mbstring php8.2-curl php8.2-xml php8.2-bcmath
+	
+Step 3: Create nginx server block and php CGI using php-fpm unix socket
+	Create file inside /etc/nginx/sites-available by running nano /etc/nginx/sites-available/fluent.test
+	
+	server {
+        listen 80;
+        server_name fluent.test;
+        root /var/www/fluent.test/public;
+
+        index index.php;
+
+        location / {
+            try_files $uri $uri/ /index.php?$args;
+        }
+
+        location ~ \.php$ {
+            include snippets/fastcgi-php.conf;
+            fastcgi_pass unix:/run/php/php-fpm.sock;
+        }
+
+        location ~ /\.ht {
+            deny all;
+        }
+    }
+
+    clone your source code in /var/www/ and specify what folder you used from the server block. In this case it's /var/www/fluent.test/
+
+    to set the storage folder permission to writable - run the command 
+    chmod -R o+w /var/www/fluent.test/storage
+
+Step 4: Assuming you already installed mysql in windows host - to know the host ip address run the following command - use the IP for your mysql server
+    ping "$(hostname).local"
+
+Step5: Create symbolic links for server block from /etc/nginx/sites-available/ to /etc/nginx/sites-enabled/ by running the command
+    ln -s /etc/nginx/sites-available/fluent.test /etc/nginx/sites-enabled/
+
+    Test the nginx configuration files by running the command 
+    nginx -t 
+
+    If successful, then restart nginx by running the command 
+    systemctl reload nginx
+
+Step 6: Add the development domain to your windows host file found in C:/Windows/System32/drivers/etc/hosts and add the following line 
+    127.0.0.1   fluent.test
+
+Side step :) Allowing connection from remote address or virtual machine address for mysql server
+    Step 1: Install MySQL server in windows
+    Step 2: Create new admin user by running command inside mysql terminal
+
+        CREATE USER 'local'@'%' IDENTITIFIED BY 'secret';
+        GRANT ALL PRIVILEGES ON *.* TO 'local'@'%' WITH GRANT OPTION;
+        FLUSH PRIVILEGES;
+
+    Your wsl server should now have access to host's MySQL server
+	
