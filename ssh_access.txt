@@ -8,3 +8,16 @@ SSH config /etc/ssh/sshd_config
 
 PermiRootLogin prohibit-password
 PasswordAuthentication no
+
+
+Create new user as root
+
+adduser username
+usermod -aG sudo username
+
+verify new user
+su - username
+sudo ls /root
+
+----!!! use Git bash to use the key in different places like encrypted drive
+ssh -p 99 -i c:/path_of_your_key username@host_ip_address

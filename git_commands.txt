@@ -1,0 +1,4 @@
+# storing git personal access token in linux
+nano ~/.git-credentials
+# input https://crisjohn02:personal_access_token_here@github.com
+git config --global credential.helper store
