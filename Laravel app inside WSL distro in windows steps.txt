@@ -33,6 +33,10 @@ Step 3: Create nginx server block and php CGI using php-fpm unix socket
         }
 
         location ~ \.php$ {
+            fastcgi_buffering on;
+            fastcgi_buffers 16 32k;
+            fastcgi_buffer_size 64k;
+            fastcgi_busy_buffers_size 64k;
             include snippets/fastcgi-php.conf;
             fastcgi_pass unix:/run/php/php-fpm.sock;
         }
@@ -72,3 +76,69 @@ Side step :) Allowing connection from remote address or virtual machine address 
 
     Your wsl server should now have access to host's MySQL server
 	
+To install fluent node backend
+Step 1: install supervisor
+    run: apt update && apt install supervisor
+
+Step 2: install nodejs via nvm
+    run: curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.3/install.sh | bash
+    run: source ~/.bashrc
+    run: nvm install v18.19.0
+
+Step 3: create supervisor config file
+    run: nano /etc/supervisor/conf.d/fluent.conf
+    and write the following:
+
+    [group:fluent-widget]
+    programs=fluent-widget1
+    [program:fluent-widget1]
+    process_name=%(program_name)s_%(process_num)02d
+    command=/var/www/fluent-backend/start.sh
+    autostart=true
+    autorestart=true
+    stopasgroup=true
+    killasgroup=true
+    user=root
+    numprocs=1
+    redirect_stderr=true
+    stdout_logfile=/var/log/fluent-widget1.log
+    stopwaitsecs=60
+    stopsignal=sigint
+    minfds=10240
+
+Step 4: clone fluent backend in /var/www/fluent-backend and change the permission of start.sh to executable
+    run: chmod +x /var/www/fluent-backend/start.sh
+
+Step 5: reread and update supervisor
+    run: supervisorctl reread
+    run: supervisorctl update
+
+Step 6: Create a reverse proxy server block for the service
+    run: nano /etc/nginx/sites-available/fluent-widget.test
+    input the following and save:
+
+    server {
+        listen 80;
+        listen [::]:80;
+        
+        server_name fluent-widget.test;
+        index index.php index.html index.htm;
+        
+        location / {
+            proxy_pass http://127.0.0.1:8001;
+            proxy_read_timeout 60;
+            proxy_connect_timeout 60;
+            proxy_redirect off;
+            
+            proxy_http_version 1.1;
+            proxy_set_header Upgrade $http_upgrade;
+            proxy_set_header Connection 'upgrade';
+            proxy_set_header Host $host;
+            proxy_cache_bypass $http_upgrade;
+        }
+    }
+
+    create symbolic link run: ln -s /etc/nginx/sites-available/fluent-widget.test /etc/nginx/sites-enabled
+    run: systemctl reload nginx
+    to test: run in browser http://fluent-widget.test/ping should display {"message":"pong"}
+    to restart or reload supervisor whenever you change the code for the backend just run: supervisorctl restart fluent-widget:\*
