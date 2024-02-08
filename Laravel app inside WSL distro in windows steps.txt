@@ -1,6 +1,6 @@
 Running Laravel apps inside WSL with database from windows host
 
-Step 1: Install WSL2 for windows and install Ubuntu 22 distro
+Step 1: Install WSL2 for windows and install Ubuntu 22 distro -  enable root as default user, run command: ubuntu config --default-user root
 Step 2: Install nginx, php-fpm and open-ssh
 	Installing nginx, php and open-ssh:
 
